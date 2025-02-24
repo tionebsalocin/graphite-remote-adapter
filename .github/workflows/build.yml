@@ -1,0 +1,84 @@
+name: build
+
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      docker:
+        image: docker:19.03.12
+        options: --privileged
+
+    strategy:
+      matrix:
+        go-version: [1.x]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Set Go import path
+      run: go env -w GO111MODULE=on
+
+    - name: Install dependencies
+      run: go mod download
+
+    - name: Run tests
+      run: make style test
+
+    - name: Verify front-end is up to date
+      run: |
+        make clean assets
+        make mod-tidy
+        git diff --exit-code
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.x
+
+    - name: Build and package
+      run: |
+        make promu
+        promu crossbuild
+        promu crossbuild tarballs
+        promu checksum .tarballs
+
+    - name: Upload release assets
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: .tarballs/*
+        asset_name: ${{ basename }}
+        asset_content_type: application/octet-stream
+
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
