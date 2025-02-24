@@ -67,14 +67,6 @@ jobs:
         promu checksum .tarballs
 
     - name: Upload release assets
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: .tarballs/*
-        asset_name: ${{ steps.upload-release-asset.outputs.asset_name }}
-        asset_content_type: application/octet-stream
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         for file in .tarballs/*; do
           basename=$(basename "$file")
