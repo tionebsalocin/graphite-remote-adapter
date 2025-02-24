@@ -37,7 +37,7 @@ style:
 	@echo ">> checking code style"
 	@! gofmt -d $(shell find . -path ./vendor -prune -o -name '*.go' -print) | grep '^'
 	@echo ">> running golint"
-	@$(GO) get golang.org/x/lint/golint
+	@$(GO) install golang.org/x/lint/golint@latest
 	@golint -set_exit_status $(shell go list $(pkgs) | grep -v 'github.com/criteo/graphite-remote-adapter/ui')
 
 format:
@@ -64,16 +64,18 @@ docker:
 
 assets:
 	@echo ">> writing assets"
-	-@$(GO) get github.com/go-bindata/go-bindata/...
+	@$(GO) get github.com/go-bindata/go-bindata/...
+	@$(GO) install github.com/go-bindata/go-bindata/...
 	# Using "-mode 420" and "-modtime 1" to make assets make target deterministic.
 	# It sets all file permissions and time stamps to 420 and 1
 	@go-bindata $(bindata_flags) -mode 420 -modtime 1 -pkg ui -o ui/bindata.go -prefix 'ui/' ui/templates/... ui/static/...
-	@$(GO) fmt ./ui
+	# @$(GO) fmt ./ui
 
 promu:
-	@GOOS=$(shell uname -s | tr A-Z a-z) \
-	GOARCH=$(subst x86_64,amd64,$(patsubst i%86,386,$(shell uname -m))) \
-	GO111MODULE=off $(GO) get -u github.com/prometheus/promu
+	@GOOS=linux \
+	GOARCH=amd64 \
+	$(GO) get github.com/prometheus/promu
+	$(GO) install github.com/prometheus/promu
 
 clean:
 	[ -f ui/bindata.go ] && rm ui/bindata.go
