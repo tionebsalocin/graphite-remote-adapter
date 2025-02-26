@@ -22,20 +22,21 @@ jobs:
       with:
         go-version: 1.x
 
+    - name: Set Go import path
+      run: go env -w GO111MODULE=on
+
+    - name: Install dependencies
+      run: go mod download    
+
+    - name: Install protobuf
+      run: sudo apt update && sudo apt install -y protobuf-compiler
+
     - name: Build and package
       run: |
         make promu
-        promu crossbuild
-        promu crossbuild tarballs
+        promu -v crossbuild
+        promu -v crossbuild tarballs
         promu checksum .tarballs
-
-    - name: Upload release assets
-      run: |
-        for file in .tarballs/*; do
-          basename=$(basename "$file")
-          echo "Uploading $basename"
-          gh release upload ${{ github.ref }} "$file" --clobber
-        done
 
     - name: Create GitHub Release
       uses: actions/create-release@v1
@@ -46,3 +47,13 @@ jobs:
         release_name: Release ${{ github.ref }}
         draft: false
         prerelease: false
+
+    - name: Upload release assets
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        for file in .tarballs/*; do
+          basename=$(basename "$file")
+          echo "Uploading $basename"
+          gh release upload ${{ github.ref }} "$file" --clobber
+        done

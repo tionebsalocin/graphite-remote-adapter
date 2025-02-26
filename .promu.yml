@@ -1,11 +1,13 @@
+go:
+    version: 1.23
 repository:
     path: github.com/criteo/graphite-remote-adapter
 build:
     binaries:
         - name: graphite-remote-adapter
           path: ./cmd/graphite-remote-adapter
-        - name: ratool
-          path: ./cmd/ratool
+        #- name: ratool
+        #  path: ./cmd/ratool
     flags: -a -tags netgo
     ldflags: |
         -X {{repoPath}}/vendor/github.com/prometheus/common/version.Version={{.Version}}
