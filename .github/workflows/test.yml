@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+  pull_request:
   workflow_dispatch: # This allows manual triggering
 
 permissions:
@@ -15,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        go-version: [1.12]
+        go-version: [1.23]
 
     steps:
     - name: Checkout code
