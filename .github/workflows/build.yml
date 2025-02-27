@@ -31,6 +31,11 @@ jobs:
     - name: Install protobuf
       run: sudo apt update && sudo apt install -y protobuf-compiler
 
+    - name: Update front-end
+      run: |
+        make clean assets
+        make mod-tidy
+
     - name: Build and package
       run: |
         make promu

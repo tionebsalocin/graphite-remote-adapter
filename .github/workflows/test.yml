@@ -36,8 +36,3 @@ jobs:
     - name: Run tests
       run: make style test
 
-    - name: Verify front-end is up to date
-      run: |
-        make clean assets
-        make mod-tidy
-        # git diff --exit-code
